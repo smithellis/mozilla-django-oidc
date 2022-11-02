@@ -35,8 +35,8 @@ class SessionRefresh(MiddlewareMixin):
 
     """
 
-    def __init__(self, *args, **kwargs):
-        super(SessionRefresh, self).__init__(*args, **kwargs)
+    def __init__(self, get_response):
+        super(SessionRefresh, self).__init__(get_response)
         self.OIDC_EXEMPT_URLS = self.get_settings('OIDC_EXEMPT_URLS', [])
         self.OIDC_OP_AUTHORIZATION_ENDPOINT = self.get_settings('OIDC_OP_AUTHORIZATION_ENDPOINT')
         self.OIDC_RP_CLIENT_ID = self.get_settings('OIDC_RP_CLIENT_ID')
@@ -47,7 +47,7 @@ class SessionRefresh(MiddlewareMixin):
         )
         self.OIDC_RP_SCOPES = self.get_settings('OIDC_RP_SCOPES', 'openid email')
         self.OIDC_USE_NONCE = self.get_settings('OIDC_USE_NONCE', True)
-        self.OIDC_NONCE_SIZE = self.get_settings('OIDC_NONCE_SIZE', 32)
+        self.OIDC_NONCE_SIZE = self.get_settings('OIDC_NONCE_SIZE', 32)        
 
     @staticmethod
     def get_settings(attr, *args):
@@ -173,7 +173,7 @@ class SessionRefresh(MiddlewareMixin):
             # The use of 403 Forbidden is to match the fact that this
             # middleware doesn't really want the user in if they don't
             # refresh their session.
-            response = JsonResponse({'refresh_url': redirect_url}, status=403)
+            response = self.get_response(JsonResponse({'refresh_url': redirect_url}, status=403))
             response['refresh_url'] = redirect_url
             return response
         return HttpResponseRedirect(redirect_url)
